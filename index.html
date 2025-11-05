@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link type="text/css" rel="stylesheet" href="style.css"/>
+  </head>
+  <body>
+    <!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Predicción de Ocupación - Cafeterías</title>
+<style>
+  :root{
+    --bg:#0b0b0b;
+    --panel:#141414;
+    --panel2:#1b1b1b;
+    --accent:#e74c3c;
+    --accent-dark:#a30000;
+    --text:#f5f5f5;
+    --muted:#aaaaaa;
+    --font:"Poppins", sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:var(--font);
+    background:radial-gradient(circle at top,#1a0000 0%,#000 80%);
+    color:var(--text);
+    min-height:100vh;
+  }
+  header{
+    background:linear-gradient(90deg,var(--accent-dark),var(--accent));
+    color:#fff;
+    text-align:center;
+    padding:20px 15px;
+    box-shadow:0 0 15px rgba(255,0,0,0.3);
+  }
+  header h1{
+    margin:0;
+    letter-spacing:1px;
+    font-size:1.6em;
+  }
+  .wrap{
+    max-width:800px;
+    margin:40px auto;
+    background:var(--panel);
+    padding:30px;
+    border-radius:14px;
+    box-shadow:0 0 25px rgba(255,0,0,0.2);
+    backdrop-filter:blur(8px);
+  }
+  h2{
+    color:var(--accent);
+    text-align:center;
+    margin-top:0;
+  }
+  label{
+    font-weight:600;
+    color:var(--muted);
+    display:block;
+    margin-top:15px;
+  }
+  select,input,button{
+    width:100%;
+    padding:12px;
+    margin-top:8px;
+    border-radius:8px;
+    border:none;
+    font-size:16px;
+  }
+  select,input{
+    background:var(--panel2);
+    color:var(--text);
+    border:1px solid #333;
+  }
+  input[type=time]::-webkit-calendar-picker-indicator{
+    filter:invert(1);
+  }
+  button{
+    background:var(--accent);
+    color:white;
+    font-weight:700;
+    cursor:pointer;
+    transition:all 0.3s ease;
+    margin-top:15px;
+    box-shadow:0 0 10px rgba(255,0,0,0.3);
+  }
+  button:hover{
+    background:#ff6655;
+    box-shadow:0 0 15px rgba(255,0,0,0.5);
+  }
+  .resultado{
+    text-align:center;
+    margin-top:25px;
+    background:var(--panel2);
+    padding:25px;
+    border-radius:12px;
+    border:1px solid rgba(255,0,0,0.4);
+    box-shadow:0 0 20px rgba(255,0,0,0.1);
+    animation:fadeIn 0.5s ease;
+  }
+  @keyframes fadeIn{from{opacity:0; transform:translateY(10px);}to{opacity:1; transform:translateY(0);}}
+  .estado{
+    font-size:2rem;
+    font-weight:800;
+    margin:8px 0;
+  }
+  .baja{ color:#3498db; text-shadow:0 0 8px #2980b9; }
+  .media{ color:#f1c40f; text-shadow:0 0 8px #d4ac0d; }
+  .alta{ color:#e74c3c; text-shadow:0 0 8px #c0392b; }
+  .cerrado{ color:#7f8c8d; font-weight:700; }
+  .note{
+    margin-top:10px;
+    color:var(--muted);
+    font-size:13px;
+  }
+  .prob{
+    display:flex;
+    justify-content:center;
+    gap:20px;
+    margin-top:10px;
+    font-family:monospace;
+  }
+  .prob div{
+    background:var(--panel);
+    padding:10px 15px;
+    border-radius:8px;
+    box-shadow:inset 0 0 5px rgba(255,0,0,0.2);
+  }
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:13px;
+    margin:25px 0;
+  }
+  .matrices{
+    margin-top:25px;
+    padding:20px;
+    background:var(--panel2);
+    border-radius:8px;
+    border:1px solid rgba(255,0,0,0.2);
+    display:none;
+  }
+  .matrices pre{
+    white-space:pre-wrap;
+    color:#ccc;
+    font-family:monospace;
+    font-size:14px;
+  }
+  @media(max-width:600px){
+    .wrap{padding:20px;}
+    .estado{font-size:1.6rem;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Predicción de Ocupación por Matrices de Transición</h1>
+</header>
+
+<div class="wrap">
+  <h2>Consulta de ocupación</h2>
+
+  <label for="cafeteria">Cafetería:</label>
+  <select id="cafeteria">
+    <option value="majavita">Café Majavita</option>
+    <option value="daylis">Daylis</option>
+    <option value="speciality">Speciality Coffee</option>
+    <option value="masqcafe">Más Q Café</option>
+  </select>
+
+  <label for="hora">Hora (entre 5:00 y 19:00):</label>
+  <input type="time" id="hora" value="07:00" step="3600">
+
+  <button onclick="calcular()">Calcular ocupación</button>
+  <button onclick="mostrarMatrices()">Ver matrices usadas</button>
+
+  <div id="resultado" class="resultado" style="display:none;"></div>
+
+  <div id="matrices" class="matrices">
+    <h3>Matrices de transición (P)</h3>
+    <pre id="matTxt"></pre>
+  </div>
+
+  <p class="note">Vector inicial: [1, 0, 0] (estado Baja a las 07:00). Cada hora equivale a una transición (Pⁿ).</p>
+</div>
+
+<footer>© Sistema de predicción — Diseño negro & rojo elegante — Basado en tus matrices</footer>
+
+<script>
+// matrices de transición
+const MATRICES = {
+  majavita: [
+    [0.20, 0.50, 0.30],
+    [0.16, 0.50, 0.34],
+    [0.10, 0.20, 0.70]
+  ],
+  daylis: [
+    [0.30, 0.50, 0.20],
+    [0.20, 0.5455, 0.2545],
+    [0.20, 0.3556, 0.4444]
+  ],
+  speciality: [
+    [0.40, 0.45, 0.15],
+    [0.24, 0.60, 0.16],
+    [0.1714, 0.40, 0.4286]
+  ],
+  masqcafe: [
+    [0.60, 0.3333, 0.0667],
+    [0.50, 0.40, 0.10],
+    [0.40, 0.36, 0.24]
+  ]
+};
+
+function mulMat(a,b){
+  const n=a.length, m=b[0].length, p=b.length;
+  const r=Array.from({length:n},()=>Array(m).fill(0));
+  for(let i=0;i<n;i++)for(let j=0;j<m;j++)for(let k=0;k<p;k++)r[i][j]+=a[i][k]*b[k][j];
+  return r;
+}
+function mulVecMat(v,m){
+  return [
+    v[0]*m[0][0]+v[1]*m[1][0]+v[2]*m[2][0],
+    v[0]*m[0][1]+v[1]*m[1][1]+v[2]*m[2][1],
+    v[0]*m[0][2]+v[1]*m[1][2]+v[2]*m[2][2]
+  ];
+}
+function matPow(m,k){
+  if(k<=0)return [[1,0,0],[0,1,0],[0,0,1]];
+  let r=m;
+  for(let i=1;i<k;i++)r=mulMat(r,m);
+  return r;
+}
+
+const ESTADOS=["Baja","Media","Alta"];
+const CLASE=["baja","media","alta"];
+
+function calcular(){
+  const caf=document.getElementById("cafeteria").value;
+  const horaVal=document.getElementById("hora").value;
+  const out=document.getElementById("resultado");
+  if(!horaVal){alert("Selecciona una hora válida");return;}
+  const h=parseInt(horaVal.split(":")[0]);
+  out.style.display="block";
+
+  if(h<5){
+    out.innerHTML=`<p class="cerrado">⚠️ No está abierta antes de las 05:00.</p>`;
+    return;
+  }
+  if(h<7){
+    out.innerHTML=`<h3>${caf.toUpperCase()}</h3>
+    <p class="estado baja">Baja (antes del inicio de clases)</p>
+    <div class="prob"><div>Baja: 100%</div><div>Media: 0%</div><div>Alta: 0%</div></div>`;
+    return;
+  }
+
+  const k=Math.max(0,h-7);
+  const P=MATRICES[caf];
+  const Pk=matPow(P,k);
+  const p0=[1,0,0];
+  const pk=mulVecMat(p0,Pk);
+  const s=pk[0]+pk[1]+pk[2];
+  const probs=pk.map(x=>x/s);
+  let idx=probs.indexOf(Math.max(...probs));
+
+  out.innerHTML=`
+    <h3>${caf.toUpperCase()}</h3>
+    <p>Hora: <strong>${horaVal}</strong> (Paso k = ${k})</p>
+    <p class="estado ${CLASE[idx]}">${ESTADOS[idx]}</p>
+    <div class="prob">
+      <div class="baja">Baja: ${(probs[0]*100).toFixed(1)}%</div>
+      <div class="media">Media: ${(probs[1]*100).toFixed(1)}%</div>
+      <div class="alta">Alta: ${(probs[2]*100).toFixed(1)}%</div>
+    </div>
+  `;
+}
+
+function mostrarMatrices(){
+  const box=document.getElementById("matrices");
+  const txt=document.getElementById("matTxt");
+  if(box.style.display==="block"){box.style.display="none";return;}
+  let out="";
+  for(const key in MATRICES){
+    out+=`P_${key.toUpperCase()} =\n`;
+    MATRICES[key].forEach(r=>{out+="  ["+r.map(x=>x.toFixed(4)).join(", ")+"]\n";});
+    out+="\n";
+  }
+  txt.textContent=out;
+  box.style.display="block";
+}
+</script>
+
+</body>
+</html>
+
+    <script type="module" src="script.js"></script>
+  </body>
+</html>
